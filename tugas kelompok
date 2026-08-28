@@ -1,0 +1,170 @@
+from abc import ABC, abstractmethod
+
+
+# Class Kamar Hotel
+class KamarHotel(ABC):
+
+    def __init__(self, nama_kamar, stok, harga_dasar):
+        self.nama_kamar = nama_kamar
+        self.__stok = 0
+        self.__harga_dasar = harga_dasar
+
+        # Mengisi stok melalui method agar tervalidasi
+        self.set_tambah_stok(stok)
+
+    # GETTER untuk melihat stok
+    def get_stok(self):
+        return self.__stok
+
+    # GETTER untuk melihat harga dasar
+    def get_harga_dasar(self):
+        return self.__harga_dasar
+
+    # METHOD untuk menambah stok
+    def set_tambah_stok(self, jumlah):
+        if jumlah < 0:
+            print(
+                f"Gagal update stok {self.nama_kamar}! "
+                f"Stok tidak boleh negatif ({jumlah})."
+            )
+        else:
+            self.__stok += jumlah
+            print(
+                f"Berhasil menambahkan stok {self.nama_kamar}: "
+                f"{jumlah} unit."
+            )
+
+    # Abstract Method
+    @abstractmethod
+    def tampilkan_detail(self):
+        pass
+
+    # Abstract Method
+    @abstractmethod
+    def hitung_harga_total(self, jumlah_malam):
+        pass
+
+
+# INHERITANCE + POLYMORPHISM
+
+class KamarDeluxe(KamarHotel):
+
+    def __init__(self, nama_kamar, stok, harga_dasar, fasilitas):
+        super().__init__(nama_kamar, stok, harga_dasar)
+        self.fasilitas = fasilitas
+
+    # Override tampilkan_detail()
+    def tampilkan_detail(self):
+        print(
+            f"[DELUXE] {self.nama_kamar} | "
+            f"Fasilitas: {self.fasilitas}"
+        )
+
+    # Override hitung_harga_total()
+    def hitung_harga_total(self, jumlah_malam):
+        # Access harga_dasar via getter to respect encapsulation
+        pajak = self.get_harga_dasar() * 0.10
+        harga_per_malam = self.get_harga_dasar() + pajak
+        total = harga_per_malam * jumlah_malam
+
+        return pajak, total
+
+
+class KamarStandard(KamarHotel):
+
+    def __init__(self, nama_kamar, stok, harga_dasar, kapasitas):
+        super().__init__(nama_kamar, stok, harga_dasar)
+        self.kapasitas = kapasitas
+
+    def tampilkan_detail(self):
+        print(
+            f"[STANDARD] {self.nama_kamar} | "
+            f"Kapasitas: {self.kapasitas}"
+        )
+
+    # Override hitung_harga_total()
+    def hitung_harga_total(self, jumlah_malam):
+        # Access harga_dasar via getter to respect encapsulation
+        pajak = self.get_harga_dasar() * 0.05
+        harga_per_malam = self.get_harga_dasar() + pajak
+        total = harga_per_malam * jumlah_malam
+
+        return pajak, total
+
+
+# FUNGSI TRANSAKSI
+def proses_transaksi(daftar_pesanan):
+
+    total_tagihan = 0
+
+    print("--- STRUK PEMESANAN ---")
+
+    for nomor, pesanan in enumerate(daftar_pesanan, start=1):
+
+        kamar = pesanan["kamar"]
+        jumlah_malam = pesanan["malam"]
+
+        kamar.tampilkan_detail()
+
+        pajak, subtotal = kamar.hitung_harga_total(jumlah_malam)
+
+        # Harga dasar per malam
+        print(
+            f" Harga Dasar/Malam: Rp {kamar.get_harga_dasar():} | "
+            f"Pajak: Rp {pajak:}"
+        )
+
+        print(
+            f" Menginap: {jumlah_malam} malam | "
+            f"Subtotal: Rp {subtotal:}"
+        )
+
+        print()
+
+        total_tagihan += subtotal
+
+    print("----------------------------------------")
+    print(f"TOTAL TAGIHAN: Rp {total_tagihan:}")
+    print("----------------------------------------")
+
+
+print("--- SETUP DATA KAMAR ---")
+
+# Admin membuat kamar Deluxe
+deluxe = KamarDeluxe(
+    "Kamar Deluxe Sea View",
+    10,
+    1_500_000,
+    "Private Pool"
+)
+
+# Admin membuat kamar Standard
+standard = KamarStandard(
+    "Kamar Standard Superior",
+    0,
+    500_000,
+    "2 Orang"
+)
+
+# Mencoba memasukkan stok negatif
+standard.set_tambah_stok(-5)
+
+# Memasukkan stok yang benar
+standard.set_tambah_stok(20)
+
+
+# PEMESANAN
+
+daftar_pesanan = [
+    {
+        "kamar": deluxe,
+        "malam": 2
+    },
+    {
+        "kamar": standard,
+        "malam": 1
+    }
+]
+
+
+proses_transaksi(daftar_pesanan)
